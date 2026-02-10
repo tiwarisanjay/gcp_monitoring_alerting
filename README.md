@@ -1,8 +1,8 @@
-# Terraform Monitoring Alerting Walkthrough
+# Terraform Monitoring Alerting
 
-I have set up the Terraform project structure with `nonprod`, `uat`, and `prod` environments, all using a shared `logging_alert` module.
+This project sets up monitoring and alerting in Google Cloud Platform (GCP) using Terraform. It includes three environments: `nonprod`, `uat`, and `prod`, all utilizing a shared local module for consistent alert policies.
 
-## Created Structure
+## Project Structure
 ```text
 .
 ├── modules
@@ -21,51 +21,49 @@ I have set up the Terraform project structure with `nonprod`, `uat`, and `prod` 
     └── main.tf           # Environment configuration
 ```
 
-## Module Details
-The `logging_alert` module creates:
-- An **Email Notification Channel** for `sanjay.tiwari@gmail.com`.
-- An **Alert Policy** that triggers when logging byte writes to `_default` bucket exceed **50MB** in **5 minutes**.
+## Module: logging_alert
+The shared module `modules/logging_alert` provisions:
+- **Notification Channel**: Email notification channel.
+- **Alert Policy**: Triggers when logging byte writes to the `_default` bucket exceed a specified threshold (default: 50MB in 5 minutes).
 
 ## Remote Backend
-State is stored in GCS bucket `tf-state-bucket` with the following prefixes:
-- Non-prod: `terraform/state/nonprod`
-- UAT: `terraform/state/uat`
-- Prod: `terraform/state/prod`
+Terraform state is stored in the GCS bucket `tf-state-bucket` with the following prefixes:
+- **Non-prod**: `terraform/state/nonprod`
+- **UAT**: `terraform/state/uat`
+- **Prod**: `terraform/state/prod`
 
 ## Version Control
-- **Git initialized**: Repository initialized locally.
-- **Commit made**: "Initial commit: Terraform monitoring alerting setup" (GPG signing enabled).
-- **Remote**: Configured as `https://github.com/tiwarisanjay/gcp_monitoring_alerting.git`.
-- **Push Status**: Pending.
+- **Repository**: `https://github.com/tiwarisanjay/gcp_monitoring_alerting.git`
 
-## Verification Steps (Non-Prod)
-Use these commands to test the `nonprod` environment:
+## Usage (Non-Prod)
+To deploy changes to the `nonprod` environment:
 
-1.  **Navigate to nonprod**:
+1.  **Navigate to the environment directory**:
     ```sh
     cd nonprod
     ```
 2.  **Initialize Terraform**:
-    This will download the provider plugins and configure the GCS backend.
+    Downloads provider plugins and configures the GCS backend.
     ```sh
     terraform init
     ```
 3.  **Validate Configuration**:
-    Checks the syntax and structure.
+    Checks for syntax errors.
     ```sh
     terraform validate
     ```
-4.  **Preview Changes**:
-    Shows what resources will be created.
+4.  **Plan Changes**:
+    Previews the resources to be created or modified.
     ```sh
     terraform plan
     ```
 5.  **Apply Changes**:
-    Creates the resources in GCP.
+    Applies the configuration to GCP.
     ```sh
     terraform apply
     ```
 
-## Notes
-- Ensure the project `sanjay_test_project_0001` exists and you have permissions to create monitoring resources.
-- The state is currently stored locally (default). For a production setup, consider configuring a remote backend (e.g., GCS bucket).
+## Prerequisites
+- **GCP Project**: `sanjay_test_project_0001` must exist.
+- **Permissions**: The Executor must have permissions to manage Monitoring resources and access the GCS state bucket.
+- **Terraform**: Terraform must be installed locally.
