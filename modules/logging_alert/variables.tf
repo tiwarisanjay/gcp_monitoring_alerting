@@ -4,9 +4,16 @@ variable "project_id" {
 }
 
 variable "email_address" {
-  description = "Email address for notifications"
+  description = "Email address for notifications. Optional if pagerduty_service_key is provided."
   type        = string
-  default     = "sanjay.tiwari@gmail.com"
+  default     = null
+}
+
+variable "pagerduty_service_key" {
+  description = "The PagerDuty service key for notifications. Optional if email_address is provided."
+  type        = string
+  default     = null
+  sensitive   = true
 }
 
 variable "threshold_mb" {

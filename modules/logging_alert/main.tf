@@ -1,10 +1,28 @@
 resource "google_monitoring_notification_channel" "email" {
+  count        = var.email_address != null ? 1 : 0
   display_name = "Email Notification Channel"
   type         = "email"
   project      = var.project_id
   labels = {
     email_address = var.email_address
   }
+}
+
+resource "google_monitoring_notification_channel" "pagerduty" {
+  count        = var.pagerduty_service_key != null ? 1 : 0
+  display_name = "PagerDuty Notification Channel"
+  type         = "pagerduty"
+  project      = var.project_id
+  labels = {
+    service_key = var.pagerduty_service_key
+  }
+}
+
+locals {
+  notification_channels = concat(
+    [for c in google_monitoring_notification_channel.email : c.name],
+    [for c in google_monitoring_notification_channel.pagerduty : c.name]
+  )
 }
 
 resource "google_monitoring_alert_policy" "logging_byte_writes" {
@@ -30,5 +48,12 @@ resource "google_monitoring_alert_policy" "logging_byte_writes" {
     }
   }
 
-  notification_channels = [google_monitoring_notification_channel.email.name]
+  notification_channels = local.notification_channels
+
+  lifecycle {
+    precondition {
+      condition     = length(local.notification_channels) > 0
+      error_message = "At least one notification channel (email_address or pagerduty_service_key) must be provided."
+    }
+  }
 }

@@ -23,8 +23,18 @@ This project sets up monitoring and alerting in Google Cloud Platform (GCP) usin
 
 ## Module: logging_alert
 The shared module `modules/logging_alert` provisions:
-- **Notification Channel**: Email notification channel.
-- **Alert Policy**: Triggers when logging byte writes to the `_default` bucket exceed a specified threshold (default: 50MB in 5 minutes).
+- **Notification Channels**: Supports Email and PagerDuty. At least one must be provided.
+- **Alert Policy**: Triggers when logging byte writes to the `_default` bucket exceed a specified threshold.
+
+### Inputs
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| `project_id` | GCP Project ID | string | n/a | yes |
+| `email_address` | Email address for notifications | string | `null` | no* |
+| `pagerduty_service_key` | PagerDuty service key | string | `null` | no* |
+| `threshold_mb` | Alert threshold in MB | number | `50` | no |
+
+*\* Either `email_address` or `pagerduty_service_key` must be provided.*
 
 ## Remote Backend
 Terraform state is stored in the GCS bucket `tf-state-bucket` with the following prefixes:
