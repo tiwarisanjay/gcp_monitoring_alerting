@@ -129,11 +129,15 @@ try {
     }
 
     $localKeyPath = Join-Path -Path $pgpLocalFolder -ChildPath $keyFileName
-    Write-Log -Message "Downloading PGP public key from $keyGsPath to $localKeyPath"
-    Run-ExternalCommand `
-        -Executable $gsutilPath `
-        -Arguments @("cp", $keyGsPath, $localKeyPath) `
-        -FailureMessage "Failed to download PGP key from GCS"
+    if (Test-Path -Path $localKeyPath) {
+        Write-Log -Message "PGP public key already exists locally. Skipping download: $localKeyPath"
+    } else {
+        Write-Log -Message "Downloading PGP public key from $keyGsPath to $localKeyPath"
+        Run-ExternalCommand `
+            -Executable $gsutilPath `
+            -Arguments @("cp", $keyGsPath, $localKeyPath) `
+            -FailureMessage "Failed to download PGP key from GCS"
+    }
 
     Write-Log -Message "Importing PGP key from $localKeyPath"
     Run-ExternalCommand `
