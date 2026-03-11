@@ -1,19 +1,8 @@
 $ErrorActionPreference = "Stop"
 
-# ==============================
-# CONFIG
-# ==============================
-$sourceFolder    = "C:\incoming"
-$processedFolder = "C:\processed"
-$bucketName      = "your-bucket-name"
-$logFile         = "C:\scripts\gcs-gransfer.log"
-$lockFile        = "C:\scripts\gcs-gransfer.lock"
-$pgpkey          = "keys/public-key.asc" # Can be full gs:// path or object path within $bucketName
-$pgpLocalFolder  = "C:\scripts\pgp"
-$gpgPath         = "C:\Program Files (x86)\GnuPG\bin\gpg.exe"
-
-# Optional: override if gsutil is in a different location.
-$gsutilPath      = "C:\Program Files\Google\Cloud SDK\google-cloud-sdk\bin\gsutil.cmd"
+param(
+    [string]$ConfigPath = "$(Split-Path -Parent $PSCommandPath)\gcs-gransfer.config.ps1"
+)
 
 function Write-Log {
     param(
@@ -102,6 +91,43 @@ function Run-ExternalCommand {
         throw "$FailureMessage (exit code $LASTEXITCODE)"
     }
 }
+
+if (-not (Test-Path -Path $ConfigPath)) {
+    throw "Config file not found: $ConfigPath"
+}
+
+$config = . $ConfigPath
+if ($null -eq $config -or -not ($config -is [hashtable])) {
+    throw "Config file must return a hashtable. File: $ConfigPath"
+}
+
+$requiredKeys = @(
+    "sourceFolder",
+    "processedFolder",
+    "bucketName",
+    "logFile",
+    "lockFile",
+    "pgpkey",
+    "pgpLocalFolder",
+    "gpgPath",
+    "gsutilPath"
+)
+
+foreach ($key in $requiredKeys) {
+    if (-not $config.ContainsKey($key) -or [string]::IsNullOrWhiteSpace([string]$config[$key])) {
+        throw "Missing or empty required config key: $key"
+    }
+}
+
+$sourceFolder   = [string]$config.sourceFolder
+$processedFolder = [string]$config.processedFolder
+$bucketName     = [string]$config.bucketName
+$logFile        = [string]$config.logFile
+$lockFile       = [string]$config.lockFile
+$pgpkey         = [string]$config.pgpkey
+$pgpLocalFolder = [string]$config.pgpLocalFolder
+$gpgPath        = [string]$config.gpgPath
+$gsutilPath     = [string]$config.gsutilPath
 
 Ensure-Directory -Path (Split-Path -Path $logFile -Parent)
 Write-Log -Message "==== Run started ===="
